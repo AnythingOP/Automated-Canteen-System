@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_URL_STATUS = 'http://localhost:5001/api/orders';
+const API_URL = 'http://localhost:5001/api/orders';
 
 function OrderStatus() {
     const [orderIdInput, setOrderIdInput] = useState('');
@@ -15,7 +15,7 @@ function OrderStatus() {
         setError('');
         setOrder(null);
         try {
-            const response = await axios.get(`${API_URL_STATUS}/${id}`);
+            const response = await axios.get(`${API_URL}/${id}`);
             setOrder(response.data);
         } catch (err) {
             setError('Order not found. Please check the ID and try again.');
@@ -25,12 +25,11 @@ function OrderStatus() {
         }
     };
     
-    // Set up polling if an order is being displayed
     useEffect(() => {
-        if (order && order.status !== 'Completed') { // Stop polling if order is completed
+        if (order && order.status !== 'Completed') {
             const interval = setInterval(() => {
                 fetchOrderStatus(order.orderId);
-            }, 5000); // Poll every 5 seconds
+            }, 5000);
             return () => clearInterval(interval);
         }
     }, [order]);
@@ -103,4 +102,5 @@ function OrderStatus() {
         </div>
     );
 }
+
 export default OrderStatus;

@@ -38,9 +38,10 @@ function CustomerView() {
         setIsLoading(true);
         try {
             const orderDetails = {
-                items: cart.map(({ id, ...rest }) => rest), // Remove client-side id before sending
+                items: cart.map(({ id, ...rest }) => rest),
                 totalAmount: totalAmount,
             };
+            // The auth token is automatically sent by the axios default header
             const response = await axios.post(API_URL, orderDetails);
             setOrderConfirmation(response.data);
             setCart([]);
@@ -86,7 +87,6 @@ function CustomerView() {
                     ))}
                 </div>
             </div>
-
             <div className="bg-white p-6 rounded-xl shadow-lg">
                 <h2 className="text-2xl font-bold text-gray-800 border-b pb-4 mb-4">Your Order</h2>
                 {cart.length === 0 ? (
@@ -116,4 +116,5 @@ function CustomerView() {
         </div>
     );
 }
+
 export default CustomerView;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_URL_KITCHEN = 'http://localhost:5001/api/orders';
+const API_URL = 'http://localhost:5001/api/orders';
 
 function KitchenView() {
     const [orders, setOrders] = useState([]);
@@ -9,7 +9,7 @@ function KitchenView() {
 
     const fetchOrders = async () => {
         try {
-            const response = await axios.get(API_URL_KITCHEN);
+            const response = await axios.get(API_URL);
             setOrders(response.data);
         } catch (error) {
             console.error("Failed to fetch orders:", error);
@@ -26,7 +26,7 @@ function KitchenView() {
 
     const updateOrderStatus = async (orderId, newStatus) => {
         try {
-            await axios.put(`${API_URL_KITCHEN}/${orderId}`, { status: newStatus });
+            await axios.put(`${API_URL}/${orderId}`, { status: newStatus });
             fetchOrders(); // Refresh list after update
         } catch (error) {
             console.error("Failed to update order status:", error);
@@ -96,4 +96,5 @@ function KitchenView() {
         </div>
     );
 }
+
 export default KitchenView;

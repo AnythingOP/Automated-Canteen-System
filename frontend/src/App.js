@@ -1,50 +1,75 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import CustomerView from './components/CustomerView';
 import KitchenView from './components/KitchenView';
 import OrderStatus from './components/OrderStatus';
+import Login from './components/Login';
+import Register from './components/Register';
+import Navbar from './components/Navbar';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import './App.css';
 
+// A wrapper for routes that require a user to be logged in.
+function PrivateRoute({ children, roles }) {
+    const { user, loading } = useAuth();
+
+    if (loading) {
+        return <div className="text-center p-10">Loading...</div>; // Or a spinner component
+    }
+
+    if (!user) {
+        // Redirect them to the /login page, but save the current location they were
+        // trying to go to. This allows us to send them back after they log in.
+        return <Navigate to="/login" />;
+    }
+
+    // If the route requires a specific role and the user doesn't have it,
+    // redirect them to a page they do have access to.
+    if (roles && !roles.includes(user.role)) {
+        // A customer trying to access /kitchen should be redirected to their main page
+        // A kitchen staff trying to access / (customer page) should be redirected to theirs
+        const redirectPath = user.role === 'customer' ? '/' : '/kitchen';
+        return <Navigate to={redirectPath} />;
+    }
+
+    return children;
+}
+
+
 function App() {
-    const [view, setView] = useState('customer'); // customer, kitchen, status
-
-    const renderView = () => {
-        switch (view) {
-            case 'kitchen':
-                return <KitchenView />;
-            case 'status':
-                return <OrderStatus />;
-            case 'customer':
-            default:
-                return <CustomerView />;
-        }
-    };
-
     return (
-        <div className="bg-gray-100 min-h-screen font-sans">
-            <header className="bg-white shadow-md">
-                <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
-                    <div className="text-2xl font-bold text-gray-800">
-                        Automated Canteen
-                    </div>
-                    <div>
-                        <button onClick={() => setView('customer')} className={`px-4 py-2 rounded-lg font-semibold ${view === 'customer' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'} mr-2 transition-colors duration-300`}>
-                            Order Food
-                        </button>
-                        <button onClick={() => setView('status')} className={`px-4 py-2 rounded-lg font-semibold ${view === 'status' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'} mr-2 transition-colors duration-300`}>
-                            Track Order
-                        </button>
-                        <button onClick={() => setView('kitchen')} className={`px-4 py-2 rounded-lg font-semibold ${view === 'kitchen' ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-700'} transition-colors duration-300`}>
-                            Kitchen Dashboard
-                        </button>
-                    </div>
-                </nav>
-            </header>
-            <main className="container mx-auto px-6 py-8">
-                {renderView()}
-            </main>
-        </div>
+        <AuthProvider>
+            <Router>
+                <div className="bg-gray-100 min-h-screen font-sans">
+                    <Navbar />
+                    <main className="container mx-auto px-6 py-8">
+                        <Routes>
+                            <Route path="/login" element={<Login />} />
+                            <Route path="/register" element={<Register />} />
+                            
+                            {/* This route is accessible to anyone */}
+                            <Route path="/track" element={<OrderStatus />} />
+
+                            {/* Protected Routes */}
+                            <Route path="/" element={
+                                <PrivateRoute roles={['customer']}>
+                                    <CustomerView />
+                                </PrivateRoute>
+                            } />
+                            <Route path="/kitchen" element={
+                                <PrivateRoute roles={['kitchen']}>
+                                    <KitchenView />
+                                </PrivateRoute>
+                            } />
+                            
+                            {/* A fallback route for any other path */}
+                            <Route path="*" element={<Navigate to="/" />} />
+                        </Routes>
+                    </main>
+                </div>
+            </Router>
+        </AuthProvider>
     );
 }
 
 export default App;
-
