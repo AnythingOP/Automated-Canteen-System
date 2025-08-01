@@ -18,8 +18,14 @@ const orderSchema = new mongoose.Schema({
     status: {
         type: String,
         required: true,
-        enum: ['Received', 'Preparing', 'Ready for Pickup', 'Completed'],
-        default: 'Received',
+        // UPDATED: Added 'Pending Payment' as the new default status
+        enum: ['Pending Payment', 'Received', 'Preparing', 'Ready for Pickup', 'Completed'],
+        default: 'Pending Payment',
+    },
+    // Keep track of which user placed the order
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
     },
     createdAt: {
         type: Date,

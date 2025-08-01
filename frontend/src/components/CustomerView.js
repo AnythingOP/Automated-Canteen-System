@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useCart } from '../context/CartContext'; // Import useCart hook
+import { useNavigate } from 'react-router-dom';
 
 const API_URL = 'http://localhost:5001/api/orders';
 
@@ -12,25 +14,12 @@ const menuItems = [
 ];
 
 function CustomerView() {
-    const [cart, setCart] = useState([]);
+    // Use the global cart state and functions
+    const { cart, addToCart, totalAmount } = useCart();
     const [isLoading, setIsLoading] = useState(false);
-    const [orderConfirmation, setOrderConfirmation] = useState(null);
+    const navigate = useNavigate();
 
-    const addToCart = (item) => {
-        setCart(currentCart => {
-            const existingItem = currentCart.find(cartItem => cartItem.id === item.id);
-            if (existingItem) {
-                return currentCart.map(cartItem =>
-                    cartItem.id === item.id ? { ...cartItem, quantity: cartItem.quantity + 1 } : cartItem
-                );
-            }
-            return [...currentCart, { ...item, quantity: 1 }];
-        });
-    };
-
-    const totalAmount = cart.reduce((total, item) => total + item.price * item.quantity, 0);
-
-    const placeOrder = async () => {
+    const handlePlaceOrder = async () => {
         if (cart.length === 0) {
             alert("Your cart is empty!");
             return;
@@ -41,33 +30,17 @@ function CustomerView() {
                 items: cart.map(({ id, ...rest }) => rest),
                 totalAmount: totalAmount,
             };
-            // The auth token is automatically sent by the axios default header
             const response = await axios.post(API_URL, orderDetails);
-            setOrderConfirmation(response.data);
-            setCart([]);
+            // Instead of showing confirmation, navigate to the payment page
+            // Pass the newly created order details in the navigation state
+            navigate('/payment', { state: { order: response.data } });
         } catch (error) {
-            console.error("Failed to place order:", error);
-            alert("Error placing order. Please try again.");
+            console.error("Failed to create order:", error);
+            alert("Error creating order. Please try again.");
         } finally {
             setIsLoading(false);
         }
     };
-
-    if (orderConfirmation) {
-        return (
-            <div className="bg-white p-8 rounded-xl shadow-lg max-w-md mx-auto text-center">
-                <h2 className="text-3xl font-bold text-green-600 mb-4">Order Placed Successfully!</h2>
-                <p className="text-gray-700 mb-2">Thank you for your order.</p>
-                <p className="text-gray-700 mb-6">Please keep your order ID for tracking:</p>
-                <div className="bg-gray-100 p-4 rounded-lg text-2xl font-mono font-bold text-blue-700 tracking-wider">
-                    {orderConfirmation.orderId}
-                </div>
-                <button onClick={() => setOrderConfirmation(null)} className="mt-8 bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition-transform duration-300 transform hover:scale-105">
-                    Place Another Order
-                </button>
-            </div>
-        );
-    }
 
     return (
         <div className="grid md:grid-cols-3 gap-8">
@@ -87,6 +60,7 @@ function CustomerView() {
                     ))}
                 </div>
             </div>
+
             <div className="bg-white p-6 rounded-xl shadow-lg">
                 <h2 className="text-2xl font-bold text-gray-800 border-b pb-4 mb-4">Your Order</h2>
                 {cart.length === 0 ? (
@@ -106,8 +80,8 @@ function CustomerView() {
                                 <span>Total:</span>
                                 <span>${totalAmount.toFixed(2)}</span>
                             </div>
-                            <button onClick={placeOrder} disabled={isLoading} className="mt-6 bg-green-600 text-white font-bold py-3 px-4 rounded-lg w-full hover:bg-green-700 transition-colors duration-300 disabled:bg-gray-400">
-                                {isLoading ? 'Placing Order...' : 'Place Order'}
+                            <button onClick={handlePlaceOrder} disabled={isLoading} className="mt-6 bg-green-600 text-white font-bold py-3 px-4 rounded-lg w-full hover:bg-green-700 transition-colors duration-300 disabled:bg-gray-400">
+                                {isLoading ? 'Proceeding...' : 'Proceed to Payment'}
                             </button>
                         </div>
                     </>

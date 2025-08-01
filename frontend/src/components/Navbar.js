@@ -1,9 +1,11 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext'; // Import useCart
 
 function Navbar() {
     const { user, logout } = useAuth();
+    const { totalItems } = useCart(); // Get total items from cart context
     const navigate = useNavigate();
 
     const handleLogout = () => {
@@ -11,15 +13,13 @@ function Navbar() {
         navigate('/login');
     };
     
-    // Simple NavLink styling
-    const navLinkStyles = ({ isActive }) => {
-        return {
-            fontWeight: isActive ? 'bold' : 'normal',
-            color: isActive ? '#2563eb' : '#1f2937',
-            marginRight: '1rem',
-            textDecoration: 'none'
-        };
-    };
+    const navLinkStyles = ({ isActive }) => ({
+        fontWeight: isActive ? 'bold' : 'normal',
+        color: isActive ? '#2563eb' : '#1f2937',
+        marginRight: '1rem',
+        textDecoration: 'none',
+        position: 'relative' // Needed for badge positioning
+    });
 
     return (
         <header className="bg-white shadow-md">
@@ -30,7 +30,17 @@ function Navbar() {
                 <div>
                     {user ? (
                         <div className="flex items-center">
-                            {user.role === 'customer' && <NavLink to="/" style={navLinkStyles}>Order Food</NavLink>}
+                            {user.role === 'customer' && (
+                                <NavLink to="/" style={navLinkStyles}>
+                                    Order Food
+                                    {/* Show cart item count badge */}
+                                    {totalItems > 0 && (
+                                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                            {totalItems}
+                                        </span>
+                                    )}
+                                </NavLink>
+                            )}
                             {user.role === 'kitchen' && <NavLink to="/kitchen" style={navLinkStyles}>Kitchen Dashboard</NavLink>}
                             <NavLink to="/track" style={navLinkStyles}>Track Order</NavLink>
                             <span className="text-gray-600 mr-4">| Welcome, {user.username}</span>

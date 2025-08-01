@@ -6,7 +6,7 @@ const { customAlphabet } = require('nanoid');
 
 const nanoid = customAlphabet('1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ', 6);
 
-// POST /api/orders - Create a new order (Protected)
+// POST /api/orders - Creates an order with "Pending Payment" status
 router.post('/', auth, async (req, res) => {
     try {
         const { items, totalAmount } = req.body;
@@ -18,7 +18,8 @@ router.post('/', auth, async (req, res) => {
             orderId: `ORD-${nanoid()}`,
             items,
             totalAmount,
-            status: 'Received',
+            user: req.user.id, // Associate order with the logged-in user
+            status: 'Pending Payment', // New orders are pending payment
         });
 
         const savedOrder = await newOrder.save();
@@ -29,13 +30,39 @@ router.post('/', auth, async (req, res) => {
     }
 });
 
-// GET /api/orders - Get all orders (Protected for kitchen staff)
+// NEW: PUT /api/orders/:id/pay - Confirms payment and moves order to kitchen
+router.put('/:id/pay', auth, async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id);
+
+        if (!order) {
+            return res.status(404).json({ msg: 'Order not found' });
+        }
+        
+        // Ensure the user paying is the one who created the order
+        if (order.user.toString() !== req.user.id) {
+            return res.status(401).json({ msg: 'User not authorized' });
+        }
+
+        order.status = 'Received'; // Update status to 'Received'
+        await order.save();
+
+        res.json(order);
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+
+// GET /api/orders - Get all orders (for kitchen staff)
 router.get('/', auth, async (req, res) => {
     if (req.user.role !== 'kitchen') {
         return res.status(403).json({ msg: 'Access denied: Requires kitchen role' });
     }
     try {
-        const orders = await Order.find().sort({ createdAt: -1 });
+        // Kitchen now only sees orders that are past the payment stage
+        const orders = await Order.find({ status: { $ne: 'Pending Payment' } }).sort({ createdAt: -1 });
         res.json(orders);
     } catch (error) {
         res.status(500).json({ message: 'Server error while fetching orders.' });
