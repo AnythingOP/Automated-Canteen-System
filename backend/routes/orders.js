@@ -18,8 +18,8 @@ router.post('/', auth, async (req, res) => {
             orderId: `ORD-${nanoid()}`,
             items,
             totalAmount,
-            user: req.user.id, // Associate order with the logged-in user
-            status: 'Pending Payment', // New orders are pending payment
+            user: req.user.id,
+            status: 'Pending Payment',
         });
 
         const savedOrder = await newOrder.save();
@@ -30,7 +30,7 @@ router.post('/', auth, async (req, res) => {
     }
 });
 
-// NEW: PUT /api/orders/:id/pay - Confirms payment and moves order to kitchen
+// PUT /api/orders/:id/pay - Confirms payment and moves order to kitchen
 router.put('/:id/pay', auth, async (req, res) => {
     try {
         const order = await Order.findById(req.params.id);
@@ -39,12 +39,11 @@ router.put('/:id/pay', auth, async (req, res) => {
             return res.status(404).json({ msg: 'Order not found' });
         }
         
-        // Ensure the user paying is the one who created the order
         if (order.user.toString() !== req.user.id) {
             return res.status(401).json({ msg: 'User not authorized' });
         }
 
-        order.status = 'Received'; // Update status to 'Received'
+        order.status = 'Received';
         await order.save();
 
         res.json(order);
@@ -61,11 +60,22 @@ router.get('/', auth, async (req, res) => {
         return res.status(403).json({ msg: 'Access denied: Requires kitchen role' });
     }
     try {
-        // Kitchen now only sees orders that are past the payment stage
         const orders = await Order.find({ status: { $ne: 'Pending Payment' } }).sort({ createdAt: -1 });
         res.json(orders);
     } catch (error) {
         res.status(500).json({ message: 'Server error while fetching orders.' });
+    }
+});
+
+// *** NEW ROUTE FOR ORDER HISTORY ***
+// GET /api/orders/my-history - Get orders for the logged-in user
+router.get('/my-history', auth, async (req, res) => {
+    try {
+        const orders = await Order.find({ user: req.user.id }).sort({ createdAt: -1 });
+        res.json(orders);
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send('Server Error');
     }
 });
 

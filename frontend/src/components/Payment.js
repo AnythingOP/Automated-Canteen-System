@@ -55,13 +55,13 @@ function Payment() {
                     {order.items.map((item, index) => (
                         <li key={index} className="flex justify-between">
                             <span>{item.quantity}x {item.name}</span>
-                            <span>${(item.price * item.quantity).toFixed(2)}</span>
+                            <span>Rs. {(item.price * item.quantity).toFixed(2)}</span>
                         </li>
                     ))}
                 </ul>
                 <div className="border-t pt-4 flex justify-between font-bold text-xl">
                     <span>Total Amount:</span>
-                    <span>${order.totalAmount.toFixed(2)}</span>
+                    <span>Rs. {order.totalAmount.toFixed(2)}</span>
                 </div>
             </div>
 
@@ -83,7 +83,6 @@ function Payment() {
                 </div>
             </div>
 
-            {/* Conditional Forms for each payment method */}
             {paymentMethod === 'card' && (
                 <div className="space-y-4 mb-6 p-4 border-l-4 border-blue-500 bg-blue-50">
                     <h4 className="font-semibold">Enter Card Details</h4>
@@ -127,7 +126,7 @@ function Payment() {
                 disabled={isProcessing}
                 className="w-full mt-2 bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition-colors duration-300 disabled:bg-gray-400"
             >
-                {isProcessing ? 'Processing...' : `Pay $${order.totalAmount.toFixed(2)}`}
+                {isProcessing ? 'Processing...' : `Pay Rs. ${order.totalAmount.toFixed(2)}`}
             </button>
         </div>
     );
