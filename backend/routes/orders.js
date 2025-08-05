@@ -67,7 +67,6 @@ router.get('/', auth, async (req, res) => {
     }
 });
 
-// *** NEW ROUTE FOR ORDER HISTORY ***
 // GET /api/orders/my-history - Get orders for the logged-in user
 router.get('/my-history', auth, async (req, res) => {
     try {
@@ -78,6 +77,55 @@ router.get('/my-history', auth, async (req, res) => {
         res.status(500).send('Server Error');
     }
 });
+
+// *** NEW: GET /api/orders/recommendations/popular - Get most ordered items ***
+router.get('/recommendations/popular', async (req, res) => {
+    try {
+        const popularItems = await Order.aggregate([
+            // 1. De-normalize the items array
+            { $unwind: '$items' },
+            // 2. Group by item name and sum the quantities
+            { $group: {
+                _id: '$items.name',
+                totalOrdered: { $sum: '$items.quantity' }
+            }},
+            // 3. Sort by the total quantity in descending order
+            { $sort: { totalOrdered: -1 } },
+            // 4. Limit to the top 5 items
+            { $limit: 5 }
+        ]);
+        res.json(popularItems);
+    } catch (error) {
+        console.error("Error fetching popular items:", error);
+        res.status(500).json({ message: 'Server error while fetching popular items.' });
+    }
+});
+
+// *** NEW: GET /api/orders/recommendations/recent - Get recently ordered items for a user ***
+router.get('/recommendations/recent', auth, async (req, res) => {
+    try {
+        const recentOrders = await Order.find({ user: req.user.id })
+            .sort({ createdAt: -1 })
+            .limit(3); // Get the last 3 orders
+
+        // Extract unique items from these recent orders
+        const recentItemsMap = new Map();
+        recentOrders.forEach(order => {
+            order.items.forEach(item => {
+                if (!recentItemsMap.has(item.name)) {
+                    recentItemsMap.set(item.name, item);
+                }
+            });
+        });
+
+        const uniqueRecentItems = Array.from(recentItemsMap.values());
+        res.json(uniqueRecentItems);
+    } catch (error) {
+        console.error("Error fetching recent items:", error);
+        res.status(500).json({ message: 'Server error while fetching recent items.' });
+    }
+});
+
 
 // GET /api/orders/:orderId - Get a specific order (Protected)
 router.get('/:orderId', auth, async (req, res) => {

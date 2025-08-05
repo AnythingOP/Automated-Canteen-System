@@ -2,14 +2,15 @@ import React from 'react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import Recommendations from './Recommendations'; // <-- Import the new component
 
-// UPDATED: Added image property and changed prices
 const menuItems = [
     { id: 1, name: 'Veggie Burger', price: 150, image: 'https://placehold.co/400x300/EBF5FB/3498DB?text=Veggie+Burger' },
-    { id: 2, name: 'Chicken Wrap', price: 220, image: 'https://placehold.co/400x300/F9EBEA/E74C3C?text=Chicken+Wrap' },
-    { id: 3, name: 'Garden Salad', price: 180, image: 'https://placehold.co/400x300/E8F8F5/2ECC71?text=Garden+Salad' },
+    { id: 2, name: 'Paneer Wrap', price: 220, image: 'https://placehold.co/400x300/F9EBEA/E74C3C?text=Paneer+Wrap' },
+    { id: 3, name: 'Chole Bhature', price: 180, image: 'https://placehold.co/400x300/E8F8F5/2ECC71?text=Chole+Bhature' },
     { id: 4, name: 'French Fries', price: 90, image: 'https://placehold.co/400x300/FEF9E7/F1C40F?text=French+Fries' },
     { id: 5, name: 'Iced Coffee', price: 110, image: 'https://placehold.co/400x300/FDF2E9/DC7633?text=Iced+Coffee' },
+    { id: 6, name: 'Pav Bhaji', price: 100, image:'https://placehold.co/400x300/F9EBEA/E74C3C?text=Pav+Bhaji'},
 ];
 
 function CustomerView() {
@@ -27,7 +28,10 @@ function CustomerView() {
 
     return (
         <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-6">Our Menu</h1>
+            {/* Add the recommendations component here */}
+            <Recommendations />
+
+            <h1 className="text-3xl font-bold text-gray-800 mb-6">Full Menu</h1>
             <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {menuItems.map(item => (
                     <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden transform hover:-translate-y-1 transition-transform duration-300 flex flex-col">
