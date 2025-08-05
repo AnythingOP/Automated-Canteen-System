@@ -1,4 +1,4 @@
-#🍔 Automated Canteen System 🍕
+🍔 Automated Canteen System 🍕
 Welcome to the Automated Canteen System! This is a full-stack web application built to modernize the traditional canteen experience, making it faster, more efficient, and user-friendly for both customers and kitchen staff. Say goodbye to long queues and manual errors!
 
 ✨ Key Features
