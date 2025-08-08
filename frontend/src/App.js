@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
 import CustomerView from './components/CustomerView';
 import KitchenView from './components/KitchenView';
@@ -26,39 +26,43 @@ function PrivateRoute({ children, roles }) {
     return children;
 }
 
-// A new component to handle the main layout, so we can use hooks
 const AppLayout = () => {
     const { user } = useAuth();
     const location = useLocation();
+    // State to control the mobile sidebar visibility
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-    // Define routes where the sidebar should be hidden
-    const noSidebarRoutes = ['/login', '/register', '/kitchen'];
+    const noSidebarRoutes = ['/login', '/register'];
+    const isKitchenRoute = location.pathname === '/kitchen';
 
-    // Determine if the sidebar should be shown
-    const showSidebar = user ? !noSidebarRoutes.includes(location.pathname) && user.role !== 'kitchen' : !noSidebarRoutes.includes(location.pathname);
+    // Sidebar should be shown if not on a no-sidebar route AND (the user is not kitchen staff OR the user is kitchen staff but on a different page)
+    const showSidebar = !noSidebarRoutes.includes(location.pathname) && !isKitchenRoute;
 
     return (
-        <div className="flex h-screen bg-gray-100">
-            {/* Conditionally render the Sidebar */}
-            {showSidebar && <Sidebar />}
+        <div className="relative min-h-screen md:flex">
+            {/* Mobile menu overlay */}
+            <div 
+                className={`fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden ${isSidebarOpen ? 'block' : 'hidden'}`} 
+                onClick={() => setIsSidebarOpen(false)}
+            ></div>
 
-            <div className="flex-1 flex flex-col overflow-hidden">
-                <Navbar />
-                <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+            {/* Sidebar */}
+            {showSidebar && <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />}
+
+            <div className="flex-1 flex flex-col">
+                {/* Pass sidebar state and toggle function to Navbar */}
+                <Navbar onMenuButtonClick={() => setIsSidebarOpen(s => !s)} />
+                <main className="flex-1 overflow-y-auto bg-gray-100 p-4 sm:p-6">
                     <Routes>
-                        {/* Public Routes */}
                         <Route path="/" element={<CustomerView />} />
                         <Route path="/login" element={<Login />} />
                         <Route path="/register" element={<Register />} />
                         <Route path="/track" element={<OrderStatus />} />
                         <Route path="/about" element={<AboutUs />} />
-
-                        {/* Protected Routes */}
                         <Route path="/cart" element={<PrivateRoute roles={['customer']}><Cart /></PrivateRoute>} />
                         <Route path="/history" element={<PrivateRoute roles={['customer']}><OrderHistory /></PrivateRoute>} />
                         <Route path="/kitchen" element={<PrivateRoute roles={['kitchen']}><KitchenView /></PrivateRoute>} />
                         <Route path="/payment" element={<PrivateRoute roles={['customer']}><Payment /></PrivateRoute>} />
-                        
                         <Route path="*" element={<Navigate to="/" />} />
                     </Routes>
                 </main>
@@ -72,7 +76,6 @@ function App() {
         <AuthProvider>
             <CartProvider>
                 <Router>
-                    {/* Use the new AppLayout component */}
                     <AppLayout />
                 </Router>
             </CartProvider>

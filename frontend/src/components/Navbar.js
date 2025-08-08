@@ -1,21 +1,37 @@
 import React from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 
-const Navbar = () => {
+// The component now receives a function to toggle the sidebar
+const Navbar = ({ onMenuButtonClick }) => {
     const { user, logout } = useAuth();
     const { totalItems } = useCart();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const handleLogout = () => {
         logout();
         navigate('/login');
     };
+    
+    // Don't show the hamburger button on these pages
+    const noMenuButtonRoutes = ['/login', '/register', '/kitchen'];
+    const showMenuButton = !noMenuButtonRoutes.includes(location.pathname);
 
     return (
-        <header className="bg-white shadow-sm h-16 flex justify-end items-center px-6">
-            <div className="flex items-center">
+        <header className="bg-white shadow-sm h-16 flex justify-between items-center px-4 sm:px-6 flex-shrink-0">
+            {/* Hamburger Menu Button for mobile */}
+            {showMenuButton && (
+                <button onClick={onMenuButtonClick} className="md:hidden text-gray-600 focus:outline-none">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            )}
+
+            {/* This div ensures the user info is always on the right */}
+            <div className="flex items-center ml-auto">
                 {user ? (
                     <>
                         {user.role === 'customer' && (
@@ -30,7 +46,7 @@ const Navbar = () => {
                                 )}
                             </Link>
                         )}
-                        <span className="font-semibold mr-4">Welcome, {user.username}</span>
+                        <span className="font-semibold mr-4 hidden sm:inline">Welcome, {user.username}</span>
                         <button onClick={handleLogout} className="font-semibold text-red-600 hover:text-red-800">Logout</button>
                     </>
                 ) : (
