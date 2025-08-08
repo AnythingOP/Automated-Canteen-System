@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useCart } from '../context/CartContext';
 import { useNavigate, Link } from 'react-router-dom';
 
-const API_URL = 'http://localhost:5001/api/orders';
+const API_URL = `${process.env.REACT_APP_API_URL}/api/orders`;
 
 function Cart() {
     const { cart, addToCart, decreaseQuantity, removeFromCart, totalAmount } = useCart();

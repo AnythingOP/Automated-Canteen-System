@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5001/api/orders';
-
+const API_URL = `${process.env.REACT_APP_API_URL}/api/orders`;
 function KitchenView() {
     const [orders, setOrders] = useState([]);
     const [isLoading, setIsLoading] = useState(true);

@@ -52,7 +52,7 @@ const Recommendations = () => {
 
     useEffect(() => {
         // Fetch most popular items
-        axios.get('http://localhost:5001/api/orders/recommendations/popular')
+        axios.get(`${process.env.REACT_APP_API_URL}/api/orders/recommendations/popular`)
             .then(res => {
                 const popularItemsDetails = res.data.map(popItem => 
                     menuItemsList.find(menuItem => menuItem.name === popItem._id)
@@ -63,7 +63,7 @@ const Recommendations = () => {
 
         // Fetch recently ordered items if the user is logged in
         if (user) {
-            axios.get('http://localhost:5001/api/orders/recommendations/recent')
+            axios.get(`${process.env.REACT_APP_API_URL}/api/orders/recommendations/recent`)
                 .then(res => {
                     // *** FIX IS HERE ***
                     // The API returns partial item data. We need to map it to our full menu list

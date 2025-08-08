@@ -9,7 +9,7 @@ const OrderHistory = () => {
     useEffect(() => {
         const fetchOrderHistory = async () => {
             try {
-                const res = await axios.get('http://localhost:5001/api/orders/my-history');
+                const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/orders/my-history`);
                 setOrders(res.data);
             } catch (err) {
                 setError('Failed to fetch order history.');

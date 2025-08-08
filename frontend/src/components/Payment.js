@@ -19,7 +19,7 @@ function Payment() {
     const handleConfirmPayment = async () => {
         setIsProcessing(true);
         try {
-            await axios.put(`http://localhost:5001/api/orders/${order._id}/pay`);
+            await axios.put(`${process.env.REACT_APP_API_URL}/api/orders/${order._id}/pay`);
             clearCart();
             setPaymentSuccess(true);
         } catch (error) {

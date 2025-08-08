@@ -17,7 +17,7 @@ function Register() {
             return;
         }
         try {
-            await axios.post('http://localhost:5001/api/auth/register', { username, password, role });
+            await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/register`, { username, password, role });
             navigate('/login');
         } catch (err) {
             setError('Failed to register. Username may already be taken.');
