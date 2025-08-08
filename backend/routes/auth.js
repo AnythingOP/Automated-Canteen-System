@@ -9,16 +9,13 @@ router.post('/register', async (req, res) => {
     try {
         const { username, password, role } = req.body;
 
-        // Check if user already exists
         let user = await User.findOne({ username });
         if (user) {
             return res.status(400).json({ msg: 'User already exists' });
         }
 
-        // Create new user instance
         user = new User({ username, password, role });
 
-        // Hash password before saving
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(password, salt);
 
@@ -37,20 +34,32 @@ router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
 
-        // Find user by username
-        const user = await User.findOne({ username });
+        // --- DEBUGGING LOGS START ---
+        console.log('--- Login Attempt ---');
+        console.log('Username received:', username);
+        console.log('Password received:', password);
+
+        // Find user by username (case-insensitive for better UX)
+        const user = await User.findOne({ username: new RegExp('^' + username + '$', 'i') });
+        
         if (!user) {
-            // Use a generic error message for security
+            console.log('DEBUG: User not found in database.');
             return res.status(400).json({ msg: 'Invalid Credentials' });
         }
-
+        console.log('DEBUG: User found in database:', user.username);
+        
         // Compare the provided password with the stored hashed password
         const isMatch = await bcrypt.compare(password, user.password);
+        
+        console.log('DEBUG: Password comparison result (isMatch):', isMatch);
+        // --- DEBUGGING LOGS END ---
+
         if (!isMatch) {
+            console.log('DEBUG: Passwords do not match.');
             return res.status(400).json({ msg: 'Invalid Credentials' });
         }
 
-        // If passwords match, create JWT payload
+        console.log('DEBUG: Login successful! Creating token...');
         const payload = {
             user: {
                 id: user.id,
@@ -59,11 +68,10 @@ router.post('/login', async (req, res) => {
             },
         };
 
-        // Sign the token
         jwt.sign(
             payload,
-            process.env.JWT_SECRET || 'your_jwt_secret', // Use environment variable
-            { expiresIn: '1h' }, // Token expires in 1 hour
+            process.env.JWT_SECRET || 'your_jwt_secret',
+            { expiresIn: '1h' },
             (err, token) => {
                 if (err) throw err;
                 res.json({ token, user: payload.user });
