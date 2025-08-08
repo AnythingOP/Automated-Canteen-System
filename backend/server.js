@@ -1,4 +1,3 @@
-// At the very top, require and configure dotenv
 require('dotenv').config();
 
 const express = require('express');
@@ -8,11 +7,17 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 5001;
 
-app.use(cors());
+// --- CORS Configuration ---
+// This tells your server to allow requests ONLY from your Vercel app
+const corsOptions = {
+  origin: 'https://automated-canteen-system.vercel.app',
+  optionsSuccessStatus: 200 // For legacy browser support
+};
+app.use(cors(corsOptions));
+
+
 app.use(express.json());
 
-// --- MongoDB Connection ---
-// Use the variable from your .env file
 const dbURI = process.env.MONGO_URI;
 
 mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })

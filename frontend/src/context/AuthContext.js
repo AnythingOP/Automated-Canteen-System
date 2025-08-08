@@ -5,7 +5,6 @@ const AuthContext = createContext(null);
 
 export const useAuth = () => useContext(AuthContext);
 
-// Helper function to set the authorization header
 const setAuthToken = token => {
     if (token) {
         axios.defaults.headers.common['x-auth-token'] = token;
@@ -29,12 +28,13 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     const login = async (username, password) => {
-        const res = await axios.post('http://localhost:5001/api/auth/login', { username, password });
+        // Ensure this line uses the environment variable
+        const res = await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/login`, { username, password });
         localStorage.setItem('token', res.data.token);
         localStorage.setItem('user', JSON.stringify(res.data.user));
         setUser(res.data.user);
         setAuthToken(res.data.token);
-        return res.data.user; // Return user data to redirect based on role
+        return res.data.user;
     };
 
     const logout = () => {
